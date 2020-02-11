@@ -1,4 +1,5 @@
 const mogoose = require('mongoose')
+const Local = require('./local.model')
 
 const bcrypt = require('bcrypt');
 const EMAIL_PATTERN = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
@@ -21,6 +22,7 @@ const userSchema = new mogoose.Schema(
           },
         password:{type: String, required: true },
         type:{ type: String, enum: USERTYPE },
+        avatar:{type:String},
         validateToken: {
             type: String,
             default: generateRandomToken
@@ -30,7 +32,14 @@ const userSchema = new mogoose.Schema(
             default: false
         },        
     }, { timestamps: true }
-)
+);
+
+userSchema.virtual('local', {
+	ref: Local.modelName,
+	localField: '_id',
+	foreignField: 'owner',
+	options: { sort: { position: -1 } }
+});
 
 userSchema.pre('save', function (next) {
     const user = this;
