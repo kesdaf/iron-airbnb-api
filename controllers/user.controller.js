@@ -9,12 +9,10 @@ module.exports.getUsers =(req,res,next) =>{
 }
 //////////////////////////////////////////////////////////////////////
 module.exports.createUser = (req, res, next) => {
-    // console.log("req.body")    
-    // console.log(req.body)
     const newUser = new User(req.body);
     newUser.save()
     .then(
-        user => res.status(201).json(user)
+        user => res.status(201).json({user:user.email, avatar:user.avatar})
     )
     .catch(next);
 };
