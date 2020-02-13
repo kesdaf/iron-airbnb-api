@@ -1,6 +1,6 @@
-const mogoose = require('mongoose')
+const mongoose = require('mongoose')
 
-const userConversationSchema = new mogoose.Schema({
+const userConversationSchema = new mongoose.Schema({
     user:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     owner:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     location:{ type: mongoose.Schema.Types.ObjectId, ref: 'Location', required: true },
@@ -10,4 +10,4 @@ const userConversationSchema = new mogoose.Schema({
 
 
   
-module.exports = new mogoose.model('UserConversation', userConversationSchema);
+module.exports = new mongoose.model('UserConversation', userConversationSchema);

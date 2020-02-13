@@ -20,24 +20,34 @@ module.exports.createReserve = (req, res, next) => {
 }
 
 module.exports.validateReserve = (req, res, next) => {
-    Reserve = localReserve.findById({ _id: req.params.id }).populate('location')
+    Reserve = localReserve.findById({ _id: req.params.id }).populate('local')
         .then(reserve => {
-            if (reserve.location.owner == req.session.user._id) {
+            console.log(reserve)
+            if (reserve.local.owner == req.session.user._id) {
                 reserve.accepted = true;
-                reserve.save().then(res => res.json(res)).catch(next)
+                reserve.save().then(validated => res.json(validated)).catch(next)
             } else {
-                res.status(401)
+                res.status(401).json()
             }
         })
         .catch(next)
 }
 module.exports.deleteReserve = (req, res, next) => {
-    Reserve = localReserve.findById({ _id: req.params.id }).populate('location')
+    localReserve.findById({ _id: req.params.id }).populate('local')
         .then(reserve => {
-            if (reserve.accepted && reserve.location.owner == req.session.user._id) {
-                reserve.delete()
+            if (reserve && !reserve.accepted && reserve.local.owner == req.session.user._id) {
+
+                localReserve.deleteOne({ _id: req.params.id })
+                    .then(loc => {
+                        if (loc.deletedCount > 0) {
+                            res.status(204).json(loc)
+                        } else {
+                            res.status(401).json()
+                        }
+                    })
+                    .catch(error => res.status(401).json(error))
             } else {
-                res.status(401)
+                res.status(401).json()
             }
         })
         .catch(next)
@@ -57,7 +67,7 @@ module.exports.getLocalReserves = (req, res, next) => {
                 if (reserves.length > 0 && reserves[0].owner == req.session.user._id) {
                     res.json(reserves)
                 } else {
-                    res.status(401)
+                    res.status(401).json()
                 }
             })
             .catch(next)
