@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const authMiddleware = require('../middlewares/auth.middleware');
 const userTypeMiddlewate = require('../middlewares/UserType.middleware');
+const uploadCloud = require('./cloudinary-setup.config');
 
 const userController = require('../controllers/user.controller');
 const localController = require('../controllers/local.controller');
@@ -11,15 +12,15 @@ const userConversation = require('../controllers/user.conversation.controller');
 
 //user
 router.get('/user', authMiddleware.isAuthenticated, userController.getUsers);
-router.post('/user', authMiddleware.isNotAuthenticated, userController.createUser);
-router.post('/login', authMiddleware.isNotAuthenticated, userController.login);
+router.post('/user', authMiddleware.isNotAuthenticated, uploadCloud.single('avatar'), userController.createUser);
+router.post('/login', userController.login);
 router.post('/logout', authMiddleware.isAuthenticated, userController.logout);
 
 //Locals
-router.get('/locals', authMiddleware.isAuthenticated,
+router.get('/locals', authMiddleware.isAuthenticated, userTypeMiddlewate.isOwner,
     localController.getLocals);
 router.post('/locals', authMiddleware.isAuthenticated, userTypeMiddlewate.isOwner,
-    localController.createLocation);
+uploadCloud.array('images'), localController.createLocation);
 router.get('/locals/:id', authMiddleware.isAuthenticated, localController.getLocation);
 router.delete('/locals/:id', authMiddleware.isAuthenticated, userTypeMiddlewate.isOwner,
     localController.deleteLocation);

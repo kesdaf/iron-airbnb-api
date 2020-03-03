@@ -8,7 +8,7 @@ const LocalSchema = new mongoose.Schema(
             bool:{type:Boolean, required:true}
         }],
         owner:{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        image:[{type:String}],
+        images:[{type:String}],
         price:{type:Number,required:true},
         description:{type:String,required:true},
         location: {

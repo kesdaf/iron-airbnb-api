@@ -2,8 +2,7 @@ const createError = require('http-errors');
 const Local = require('../models/local.model')
 
 module.exports.getLocals = (req, res, next) => {
-    Local.find()
-        .populate('owner')
+    Local.find({ owner: req.session.user._id })
         .then(locals => res.json(locals))
         .catch(next)
 }
@@ -44,13 +43,30 @@ module.exports.findLocal = (req, res, next) => {
         }
     }
 
-    Local.find(query).populate('owner').then(locals => res.json(locals))
+    Local.find(query).populate('owner').then(locals => res.json(locals.map((l) =>(
+        {
+            title:l.title,
+            price:l.price,
+            id:l._id,
+            description:l.description,
+            img:l.images?l.images[0]:'',
+            latitude:l.location.coordinates[0],
+            longitude:l.location.coordinates[1],
+        }
+    )
+    )))
         .catch(next)
 }
 
 module.exports.createLocation = (req, res, next) => {
-    const newLocation = new Local({ ...req.body, owner: req.session.user._id });
+    const { title, options, images, price, description, lat, long } = req.body
 
+    const newLocation = new Local({
+        title, images, price, description,
+        location: { "type": "Point", "coordinates": [long, lat] },
+        owner: req.session.user._id
+    });
+    console.log(newLocation)
     newLocation.save().then(
         location => res.status(201).json(location)
     )
@@ -60,17 +76,26 @@ module.exports.createLocation = (req, res, next) => {
 module.exports.getLocation = (req, res, next) => {
     Local.findById(req.params.id)
         .then(loc => res.json(loc))
-        .catch(err => res.status(404).json({"message":"Not found"}))
+        .catch(err => res.status(404).json({ "message": "Not found" }))
 }
 
 module.exports.deleteLocation = (req, res, next) => {
-    Local.deleteOne({ _id: req.params.id, owner: req.session._id })
+    console.log(req.params.id)
+    Local.findById(req.params.id)
         .then(loc => {
-            if(loc.deletedCount>0){
-                res.status(204).json(loc)
-            }else{
-                res.status(401).json()
+            if (loc.owner = req.session.user._id) {
+                Local.findByIdAndDelete({ "_id": req.params.id })
+                    .then(loc => {
+                        console.log(loc)
+                        res.json(loc)
+                    })
+                    .catch(error => {
+                        console.log(error)
+                        res.status(405).json(error)
+                    })
             }
+        }).catch(error => {
+            console.log(error)
+            res.status(405).json(error)
         })
-        .catch(error => res.status(401).json(error))
 }

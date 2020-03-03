@@ -4,6 +4,7 @@ const Local = require('./local.model')
 const bcrypt = require('bcrypt');
 const EMAIL_PATTERN = /^(([^<>()\[\]\.,;:\s@\"]+(\.[^<>()\[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
 const SALT_WORK_FACTOR = 10;
+const PASSWORD_PATTERN = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,}$/;
 
 const generateRandomToken = () => {
   return Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
@@ -20,7 +21,11 @@ const userSchema = new mogoose.Schema(
             lowercase: true,
             match: [EMAIL_PATTERN, 'Email is invalid']
           },
-        password:{type: String, required: true },
+        password:{
+          type: String, 
+          required: true,
+          // match:[PASSWORD_PATTERN,'Password need 8 character lower case, upper case and number']
+        },
         type:{ type: String, enum: USERTYPE },
         avatar:{type:String},
         validateToken: {
