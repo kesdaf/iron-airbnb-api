@@ -10,7 +10,7 @@ const faker = require('faker')
 User.deleteMany({})
   .then(() => Local.deleteMany({}))
   .then(() => {
-    for (let i = 0; i < 100; i++) {
+    for (let i = 0; i < 500; i++) {
         const user = new User({
           name: faker.name.findName(),
           email: faker.internet.email(),
@@ -24,9 +24,9 @@ User.deleteMany({})
         user.save().then(
             us =>{
                 if(us.type == USERTYPE[1]){
-                    for(let i=0; i< Math.random()*1000;i++){
+                    for(let i=0; i< Math.random()*10000;i++){
                         let imgs=[]
-                        for(let i=0; i< Math.random()*10;i++){
+                        for(let i=0; i< Math.random()*5;i++){
                             imgs.push(faker.image.city())
                         }
                         const local= new Local({
