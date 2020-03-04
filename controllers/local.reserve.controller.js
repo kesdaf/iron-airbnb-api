@@ -7,6 +7,8 @@ const { USERTYPE } = require('../models/user.model')
 module.exports.createReserve = (req, res, next) => {
     const { local, init_date, finish_date } = req.body;
     console.log({ local, init_date, finish_date })
+    console.log(new Date(init_date))
+    console.log(new Date(finish_date))
     const newlocalReserve = new localReserve({
         user: req.session.user._id,
         local: local,
@@ -20,24 +22,34 @@ module.exports.createReserve = (req, res, next) => {
 }
 
 module.exports.validateReserve = (req, res, next) => {
-    Reserve = localReserve.findById({ _id: req.params.id }).populate('location')
+    Reserve = localReserve.findById({ _id: req.params.id }).populate('local')
         .then(reserve => {
-            if (reserve.location.owner == req.session.user._id) {
+            console.log(reserve)
+            if (reserve.local.owner == req.session.user._id) {
                 reserve.accepted = true;
-                reserve.save().then(res => res.json(res)).catch(next)
+                reserve.save().then(validated => res.json(validated)).catch(next)
             } else {
-                res.status(401)
+                res.status(401).json()
             }
         })
         .catch(next)
 }
 module.exports.deleteReserve = (req, res, next) => {
-    Reserve = localReserve.findById({ _id: req.params.id }).populate('location')
+    localReserve.findById({ _id: req.params.id }).populate('local')
         .then(reserve => {
-            if (reserve.accepted && reserve.location.owner == req.session.user._id) {
-                reserve.delete()
+            if (reserve && !reserve.accepted && reserve.local.owner == req.session.user._id) {
+
+                localReserve.deleteOne({ _id: req.params.id })
+                    .then(loc => {
+                        if (loc.deletedCount > 0) {
+                            res.status(204).json(loc)
+                        } else {
+                            res.status(401).json()
+                        }
+                    })
+                    .catch(error => res.status(401).json(error))
             } else {
-                res.status(401)
+                res.status(401).json()
             }
         })
         .catch(next)
@@ -49,15 +61,15 @@ module.exports.getLocalReserves = (req, res, next) => {
             .then(reserves => {
                 res.json(reserves.map(r => { return { init_date: r.init_date, finish_date: r.finish_date } }))
             })
-            .catch(next)
+            .catch(e=>{console.log(e);next})
     } else if ((req.session.user.type == USERTYPE[1])) {
         localReserve.find({ local: req.params.local, accepted: true })
-            .populate('location')
             .then(reserves => {
+                console.log(reserves)
                 if (reserves.length > 0 && reserves[0].owner == req.session.user._id) {
                     res.json(reserves)
                 } else {
-                    res.status(401)
+                    res.status(401).json()
                 }
             })
             .catch(next)
@@ -68,6 +80,7 @@ module.exports.getLocalReserves = (req, res, next) => {
 module.exports.getMyLocalReserves = (req, res, next) => {
     if (req.session.user.type == USERTYPE[0]) {
         Reserve = localReserve.find({ user: req.session.user._id })
+        .populate('local')
             .then(reserves => {
                 res.json(reserves)
             })
@@ -76,6 +89,8 @@ module.exports.getMyLocalReserves = (req, res, next) => {
         Local.find({ owner: req.session.user._id })
             .then(locals => {
                 Reserve = localReserve.find({ local: { $in: locals.map(loc => loc._id) } })
+                .sort( { accepted: 0 } )
+                .populate('local')
                     .then(reserves => {
                         res.json(reserves)
                     }).catch(next)
