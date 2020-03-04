@@ -7,6 +7,7 @@ module.exports.isAuthenticated = (req, res, next) => {
 }
 
 module.exports.isNotAuthenticated = (req, res, next) => {
+    console.log(req.session.user)
     if (!req.session.user) {
         next()
     } else {

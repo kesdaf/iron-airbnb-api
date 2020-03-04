@@ -23,10 +23,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 
-app.use(session)
+app.use(session);
 
 app.use((req, res, next) => {
-    req.currentUser = req.session.user 
+    req.currentUser = req.session.user;
     next()  
 })
 
@@ -67,7 +67,7 @@ app.use(function (error, req, res, next) {
 /** 
  * Listen on provided port
  */
-const port = normalizePort(process.env.PORT || '3000');
+const port = normalizePort(process.env.PORT || '3001');
 app.listen(port, () => {
     console.log(`Listening on port ${port}`);
 });
