@@ -74,8 +74,11 @@ module.exports.createLocation = (req, res, next) => {
 }
 
 module.exports.getLocation = (req, res, next) => {
+    console.log(req.params.id)
     Local.findById(req.params.id)
-        .then(loc => res.json(loc))
+        .then(loc =>{
+            res.json(loc)
+        } )
         .catch(err => res.status(404).json({ "message": "Not found" }))
 }
 
